@@ -9,6 +9,12 @@ https://github.com/SaitoTsutomu/sqlmodel-book-sample
 最初に、テーブルと機能を説明し、続いて、環境構築や実行方法を説明します。
 最後に、ファイル構成と、抜粋したコードや補足の説明をします。
 
+### 参考
+
+- FastAPI版のサンプルコードの記事もあります。
+
+https://qiita.com/SaitoTsutomu/items/6fd5cd835a4b904a5a3e
+
 ## テーブルとカラム
 
 著者テーブルと書籍テーブルを操作します。データベースは、SQLiteを使います。
