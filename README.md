@@ -88,7 +88,7 @@ APIは`src`ディレクトリにあり、下記の3つのファイルからな�
 ```python:src/main.py
 @app.get("/authors", tags=["/authors"])
 async def get_authors(db: AsyncSession = Depends(get_db)) -> list[AuthorGet]:
-    return list(map(AuthorGet.model_validate, await db.exec(select(Author))))
+    return list(map(AuthorGet.model_validate, await db.scalars(select(Author))))
 ```
 
 ### `models.py`（抜粋）

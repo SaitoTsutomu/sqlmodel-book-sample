@@ -1,8 +1,7 @@
 from typing import AsyncIterator
 
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import Field, Relationship, SQLModel, select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 class AuthorBase(SQLModel):
@@ -68,11 +67,13 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     async with AsyncSession(engine) as session:
-        authors = await session.exec(select(Author))
+        authors = await session.scalars(select(Author))
         if not authors.first():
-            author = Author(id=None, name="夏目漱石")
-            book = Book(id=None, name="坊っちゃん", author_id=author.id, author=author)
-            session.add_all([author, book])
+            author1 = Author(id=None, name="夏目漱石")
+            author2 = Author(id=None, name="泉鏡花")
+            book1 = Book(id=None, name="坊っちゃん", author=author1)
+            book2 = Book(id=None, name="高野聖", author=author2)
+            session.add_all([author1, author2, book1, book2])
             await session.commit()
 
 

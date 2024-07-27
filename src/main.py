@@ -54,12 +54,12 @@ async def add_book(book: BookAdd, db: AsyncSession = Depends(get_db)) -> BookGet
 
 @app.get("/authors", tags=["/authors"])
 async def get_authors(db: AsyncSession = Depends(get_db)) -> list[AuthorGet]:
-    return list(map(AuthorGet.model_validate, await db.exec(select(Author))))
+    return list(map(AuthorGet.model_validate, await db.scalars(select(Author))))
 
 
 @app.get("/books", tags=["/books"])
 async def get_books(db: AsyncSession = Depends(get_db)) -> list[BookGet]:
-    return list(map(BookGet.model_validate, await db.exec(select(Book))))
+    return list(map(BookGet.model_validate, await db.scalars(select(Book))))
 
 
 @app.get("/authors/{author_id}", tags=["/authors"])
