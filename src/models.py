@@ -9,7 +9,7 @@ class AuthorBase(SQLModel):
     name: str
 
 
-class Author(AuthorBase, table=True):
+class Author(AuthorBase, table=True):  # type: ignore
     id: int | None = Field(default=None, primary_key=True)
     books: list["Book"] = Relationship(
         back_populates="author", sa_relationship_kwargs={"cascade": "delete"}
@@ -29,6 +29,7 @@ class AuthorGetWithBooks(AuthorGet):
 
 
 class AuthorUpdate(SQLModel):
+    id: int
     name: str | None = None
 
 
@@ -37,7 +38,7 @@ class BookBase(SQLModel):
     author_id: int | None = Field(default=None, foreign_key="author.id")
 
 
-class Book(BookBase, table=True):
+class Book(BookBase, table=True):  # type: ignore
     id: int | None = Field(default=None, primary_key=True)
     author: Author | None = Relationship(back_populates="books")
 
@@ -55,6 +56,7 @@ class BookGetWithAuthor(BookGet):
 
 
 class BookUpdate(SQLModel):
+    id: int
     name: str | None = None
     author_id: int | None = None
 
@@ -66,7 +68,7 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     async with AsyncSession(engine) as session:
-        authors = await session.scalars(select(Author))
+        authors = await session.exec(select(Author))
         if not authors.first():
             author = Author(id=None, name="夏目漱石")
             book = Book(id=None, name="坊っちゃん", author_id=author.id, author=author)

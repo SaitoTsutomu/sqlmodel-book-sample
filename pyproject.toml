@@ -1,9 +1,9 @@
 [tool.poetry]
 authors = ["Saito Tsutomu <tsutomu7@hotmail.co.jp>"]
 description = "SQLModel Book Sample"
-name = "sqlmodel-book-sample"
+name = "src"
 readme = "README.md"
-version = "0.1.0"
+version = "0.1.1"
 
 [tool.poetry.dependencies]
 aiosqlite = "^0"
@@ -14,7 +14,11 @@ sqlalchemy = "^2.0"
 sqlmodel = "^0"
 
 [tool.poetry.group.dev.dependencies]
+mypy = "^1.11"
+pytest = "^8.3"
 pytest-asyncio = "^0"
+pytest-randomly = "^3.15"
+ruff = "^0"
 
 [tool.mypy]
 ignore_missing_imports = true

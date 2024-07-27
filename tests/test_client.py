@@ -2,62 +2,69 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_it(client):
-    # 著者1を追加
-    author1 = (await client.post("/authors", data='{"name": "author1"}')).json()
-    assert author1 == {"id": 1, "name": "author1"}, "POST /authors"
+class TestAuthors:
+    URL = "/authors"
 
-    # 全著者を確認
-    authors = (await client.get("/authors")).json()
-    assert authors == [author1], "GET /authors"
+    async def test_post(self, client, author1_data):
+        author = (await client.post(self.URL, json=author1_data)).json()
+        assert author == author1_data | {"id": author["id"]}
 
-    # 著者1を確認
-    actual = (await client.get("/authors/1")).json()
-    assert actual == author1, "GET /authors/{author_id}"
+    async def test_get_all(self, client, author1, author2):
+        authors = (await client.get(self.URL)).json()
+        assert authors == [author1, author2]
 
-    # 著者1の詳細を確認
-    actual = (await client.get("/authors/1/details")).json()
-    expected = author1 | {"books": []}
-    assert actual == expected, "GET /authors/{book_id}/details"
+    async def test_get_one(self, client, author1):
+        author = (await client.get(f"{self.URL}/{author1['id']}")).json()
+        assert author == author1
 
-    # 著者1を更新
-    actual = (await client.patch("/authors?author_id=1", data='{"name": "test1"}')).json()
-    assert actual == {"id": 1, "name": "test1"}, "PATCH /authors"
+    async def test_get_details(self, client, author1, book1):
+        author = (await client.get(f"{self.URL}/{author1['id']}/details")).json()
+        assert author == author1 | {"books": [book1]}
 
-    # 書籍1を追加
-    book1 = (await client.post("/books", data='{"name": "book1", "author_id": 1}')).json()
-    assert book1 == {"id": 1, "name": "book1", "author_id": 1}, "POST /books"
+    async def test_patch_name(self, client, author1):
+        data = {"id": author1["id"], "name": "NewName"}
+        author = (await client.patch(self.URL, json=data)).json()
+        assert author == data
 
-    # 書籍2を追加
-    book2 = (await client.post("/books", data='{"name": "book2", "author_id": 1}')).json()
-    assert book2 == {"id": 2, "name": "book2", "author_id": 1}, "POST /books"
+    async def test_delete(self, client, author1, author2, book1):
+        await client.delete(f"{self.URL}?author_id={author1['id']}")
+        authors = (await client.get(self.URL)).json()
+        assert len(authors) == 1
+        books = (await client.get("/books")).json()
+        assert len(books) == 0
 
-    # 全書籍を確認
-    books = (await client.get("/books")).json()
-    assert books == [book1, book2], "GET /books"
 
-    # 書籍2を確認
-    actual = (await client.get("/books/2")).json()
-    assert actual == book2, "GET /books/{book_id}"
+@pytest.mark.asyncio
+class TestBooks:
+    URL = "/books"
 
-    # 書籍2の詳細を確認
-    actual = (await client.get("/books/2/details")).json()
-    expected = book2 | {"author": {"id": 1, "name": "test1"}}
-    assert actual == expected, "GET /books/{book_id}/details"
+    async def test_post(self, client, book1_data):
+        book = (await client.post("/books", json=book1_data)).json()
+        assert book == book1_data | {"id": book["id"]}
 
-    # 書籍2を更新
-    actual = (await client.patch("/books?book_id=2", data='{"name": "test2"}')).json()
-    book2 |= {"name": "test2"}
-    assert actual == book2, "PATCH /books"
+    async def test_get_all(self, client, book1):
+        books = (await client.get(self.URL)).json()
+        assert books == [book1]
 
-    # 書籍1を削除して全書籍を確認
-    await client.delete("/books?book_id=1")
-    books = (await client.get("/books")).json()
-    assert books == [book2], "DELETE /books"
+    async def test_get_one(self, client, book1):
+        book = (await client.get(f"/books/{book1['id']}")).json()
+        assert book == book1
 
-    # 著者1を削除して全著者と全書籍が空を確認
-    await client.delete("/authors?author_id=1")
-    authors = (await client.get("/authors")).json()
-    assert authors == [], "DELETE /authors"
-    books = (await client.get("/books")).json()
-    assert books == [], "CASCADE by DELETE /authors"
+    async def test_get_details(self, client, author1, book1):
+        book = (await client.get(f"{self.URL}/{book1['id']}/details")).json()
+        assert book == book1 | {"author": author1}
+
+    async def test_patch_name(self, client, book1):
+        data = {"id": book1["id"], "name": "NewName"}
+        book = (await client.patch(self.URL, json=data)).json()
+        assert book == data | {"author_id": book1["author_id"]}
+
+    async def test_patch_author(self, client, author2, book1):
+        data = {"id": book1["id"], "author_id": author2["id"]}
+        book = (await client.patch(self.URL, json=data)).json()
+        assert book == data | {"name": book1["name"]}
+
+    async def test_delete(self, client, book1):
+        await client.delete(f"{self.URL}?book_id={book1['id']}")
+        books = (await client.get(f"{self.URL}")).json()
+        assert len(books) == 0

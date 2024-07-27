@@ -37,7 +37,7 @@ async def add_author(author: AuthorAdd, db: AsyncSession = Depends(get_db)) -> A
     db.add(author_new)
     await db.commit()
     await db.refresh(author_new)
-    return author_new
+    return AuthorGet.model_validate(author_new)
 
 
 @app.post("/books", tags=["/books"])
@@ -49,17 +49,17 @@ async def add_book(book: BookAdd, db: AsyncSession = Depends(get_db)) -> BookGet
     db.add(book_new)
     await db.commit()
     await db.refresh(book_new)
-    return book_new
+    return BookGet.model_validate(book_new)
 
 
 @app.get("/authors", tags=["/authors"])
 async def get_authors(db: AsyncSession = Depends(get_db)) -> list[AuthorGet]:
-    return await db.scalars(select(Author))
+    return list(map(AuthorGet.model_validate, await db.exec(select(Author))))
 
 
 @app.get("/books", tags=["/books"])
 async def get_books(db: AsyncSession = Depends(get_db)) -> list[BookGet]:
-    return await db.scalars(select(Book))
+    return list(map(BookGet.model_validate, await db.exec(select(Book))))
 
 
 @app.get("/authors/{author_id}", tags=["/authors"])
@@ -67,7 +67,7 @@ async def get_author(author_id: int, db: AsyncSession = Depends(get_db)) -> Auth
     author = await db.get(Author, author_id)
     if not author:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
-    return author
+    return AuthorGet.model_validate(author)
 
 
 @app.get("/books/{book_id}", tags=["/books"])
@@ -75,52 +75,46 @@ async def get_book(book_id: int, db: AsyncSession = Depends(get_db)) -> BookGet:
     book = await db.get(Book, book_id)
     if not book:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
-    return book
+    return BookGet.model_validate(book)
 
 
 @app.get("/authors/{author_id}/details", tags=["/authors"])
-async def get_author_details(
-    author_id: int, db: AsyncSession = Depends(get_db)
-) -> AuthorGetWithBooks:
-    author = await db.scalar(
-        select(Author).where(Author.id == author_id).options(selectinload(Author.books))
-    )
+async def author_details(author_id: int, db: AsyncSession = Depends(get_db)) -> AuthorGetWithBooks:
+    q = select(Author).where(Author.id == author_id)
+    author = await db.scalar(q.options(selectinload(Author.books)))  # type: ignore
     if not author:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
-    return author
+    return AuthorGetWithBooks.model_validate(author)
 
 
 @app.get("/books/{book_id}/details", tags=["/books"])
-async def get_book_details(book_id: int, db: AsyncSession = Depends(get_db)) -> BookGetWithAuthor:
+async def book_details(book_id: int, db: AsyncSession = Depends(get_db)) -> BookGetWithAuthor:
     book = await db.scalar(
-        select(Book).where(Book.id == book_id).options(selectinload(Book.author))
+        select(Book).where(Book.id == book_id).options(selectinload(Book.author))  # type: ignore
     )
     if not book:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
-    return book
+    return BookGetWithAuthor.model_validate(book)
 
 
 @app.patch("/authors", tags=["/authors"])
-async def update_author(
-    author_id: int, author: AuthorUpdate, db: AsyncSession = Depends(get_db)
-) -> AuthorGet:
-    author_cur = await db.get(Author, author_id)
+async def update_author(author: AuthorUpdate, db: AsyncSession = Depends(get_db)) -> AuthorGet:
+    author_cur = await db.get(Author, author.id)
     if not author_cur:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
-    author_cur.name = author.name
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author.id")
+    if author.name is not None:
+        author_cur.name = author.name
     db.add(author_cur)
     await db.commit()
     await db.refresh(author_cur)
-    return author_cur
+    return AuthorGet.model_validate(author_cur)
 
 
 @app.patch("/books", tags=["/books"])
-async def update_book(
-    book_id: int, book: BookUpdate, db: AsyncSession = Depends(get_db)
-) -> BookGet:
-    book_cur = await db.get(Book, book_id)
+async def update_book(book: BookUpdate, db: AsyncSession = Depends(get_db)) -> BookGet:
+    book_cur = await db.get(Book, book.id)
     if not book_cur:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book.id")
     if book.author_id is not None:
         author = await db.get(Author, book.author_id)
         if not author:
@@ -132,24 +126,22 @@ async def update_book(
     db.add(book_cur)
     await db.commit()
     await db.refresh(book_cur)
-    return book_cur
+    return BookGet.model_validate(book_cur)
 
 
 @app.delete("/authors", tags=["/authors"])
-async def delete_author(author_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_author(author_id: int, db: AsyncSession = Depends(get_db)) -> None:
     author = await db.get(Author, author_id)
     if author is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
     await db.delete(author)
     await db.commit()
-    return {"ok": True}
 
 
 @app.delete("/books", tags=["/books"])
-async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)) -> None:
     book = await db.get(Book, book_id)
     if book is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
     await db.delete(book)
     await db.commit()
-    return {"ok": True}
