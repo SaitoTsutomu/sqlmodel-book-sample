@@ -11,7 +11,7 @@ https://github.com/SaitoTsutomu/sqlmodel-book-sample
 
 ### 参考
 
-- FastAPI版のサンプルコードの記事もあります。
+- FastAPI版のサンプルコードの記事
 
 https://qiita.com/SaitoTsutomu/items/6fd5cd835a4b904a5a3e
 
@@ -24,8 +24,8 @@ https://qiita.com/SaitoTsutomu/items/6fd5cd835a4b904a5a3e
 | 著者（`Author`） | ID（`id`）、名前（`name`）、書籍（`books`）                         |
 | 書籍（`Book`）   | ID（`id`）、名前（`name`）、著者ID（`author_id`）、著者（`author`） |
 
-- `Book.author_id`は、`Author.id`の外部キーです。
-- `Author.books`と`Book.author`は、リレーション用です。
+- `Book.author_id`は、`Author.id`の外部キー
+- `Author.books`と`Book.author`は、リレーション用
 
 ## 機能
 
@@ -46,9 +46,9 @@ https://qiita.com/SaitoTsutomu/items/6fd5cd835a4b904a5a3e
 | PATCH  | `/books?id=...`                | `update_book()`    | 指定書籍の更新 |
 | DELETE | `/books?book_id=...`           | `delete_book()`    | 指定書籍の削除 |
 
-- 著者と書籍が親子構造になっています
-- 書籍を追加するには、親となる著者が必要です
-- 指定著者を削除すると、子供である書籍も削除されます
+- 著者と書籍が親子構造になっている
+- 書籍を追加するには、親となる著者が必要
+- 指定著者を削除すると、子供である書籍も削除される
 
 ## 環境構築
 
@@ -77,9 +77,9 @@ poetry run uvicorn src.main:app --host 0.0.0.0 --reload
 
 APIは`src`ディレクトリにあり、下記の3つのファイルからなります。
 
-- `__init__.py`：パッケージ化するための空のファイルです。
-- `main.py`：パスオペレーション関数を定義しています。
-- `models.py`：SQLModelのクラスなどを定義しています。
+- `__init__.py`：パッケージ化するための空のファイル
+- `main.py`：パスオペレーション関数を定義
+- `models.py`：SQLModelのクラスなどを定義
 
 ### `main.py`（抜粋）
 
