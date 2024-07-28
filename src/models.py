@@ -51,7 +51,7 @@ class BookGet(BookAdd):
 
 
 class BookGetWithAuthor(BookGet):
-    author: AuthorGet | None = None
+    author: AuthorGet
 
 
 class BookUpdate(SQLModel):
