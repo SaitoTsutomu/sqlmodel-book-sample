@@ -104,7 +104,6 @@ async def update_author(author: AuthorUpdate, db: AsyncSession = Depends(get_db)
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author.id")
     if author.name is not None:
         author_cur.name = author.name
-    db.add(author_cur)
     await db.commit()
     await db.refresh(author_cur)
     return author_cur
@@ -115,15 +114,13 @@ async def update_book(book: BookUpdate, db: AsyncSession = Depends(get_db)):
     book_cur = await db.get(Book, book.id)
     if not book_cur:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book.id")
-    if book.author_id is not None:
-        author = await db.get(Author, book.author_id)
-        if not author:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book.author_id")
     if book.name is not None:
         book_cur.name = book.name
     if book.author_id is not None:
-        book_cur.author_id = book.author_id
-    db.add(book_cur)
+        author_cur = await db.get(Author, book.author_id)
+        if not author_cur:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book.author_id")
+        book_cur.author = author_cur
     await db.commit()
     await db.refresh(book_cur)
     return book_cur
