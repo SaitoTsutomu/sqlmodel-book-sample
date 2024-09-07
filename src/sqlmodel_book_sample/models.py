@@ -1,4 +1,4 @@
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import Field, Relationship, SQLModel, select
@@ -10,9 +10,7 @@ class AuthorBase(SQLModel):
 
 class Author(AuthorBase, table=True):  # type: ignore
     id: int | None = Field(default=None, primary_key=True)
-    books: list["Book"] = Relationship(
-        back_populates="author", sa_relationship_kwargs={"cascade": "delete"}
-    )
+    books: list["Book"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "delete"})
 
 
 class AuthorAdd(AuthorBase):

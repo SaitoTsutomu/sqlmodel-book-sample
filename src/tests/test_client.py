@@ -39,7 +39,7 @@ class TestBooks:
     URL = "/books"
 
     async def test_post(self, client, book1_data):
-        book = (await client.post("/books", json=book1_data)).json()
+        book = (await client.post(self.URL, json=book1_data)).json()
         assert book == book1_data | {"id": book["id"]}
 
     async def test_get_all(self, client, book1):
@@ -47,7 +47,7 @@ class TestBooks:
         assert books == [book1]
 
     async def test_get_one(self, client, book1):
-        book = (await client.get(f"/books/{book1['id']}")).json()
+        book = (await client.get(f"{self.URL}/{book1['id']}")).json()
         assert book == book1
 
     async def test_get_details(self, client, author1, book1):

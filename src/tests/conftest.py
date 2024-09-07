@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.main import app
-from src.models import Author, Book, get_db
+from sqlmodel_book_sample.main import app
+from sqlmodel_book_sample.models import Author, Book, get_db
 
 
 @pytest_asyncio.fixture
