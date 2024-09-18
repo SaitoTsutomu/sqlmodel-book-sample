@@ -26,7 +26,7 @@ class TestAuthors:
         author = (await client.patch(self.URL, json=data)).json()
         assert author == data
 
-    async def test_delete(self, client, author1, author2, book1):
+    async def test_delete(self, client, author1, author2, book1):  # noqa: ARG002
         await client.delete(f"{self.URL}?author_id={author1['id']}")
         authors = (await client.get(self.URL)).json()
         assert len(authors) == 1

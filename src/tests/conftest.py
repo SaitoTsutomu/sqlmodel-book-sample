@@ -1,3 +1,4 @@
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -24,9 +25,9 @@ async def db(engine):
         yield db_
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def override_get_db(db):
-    async def get_test_db():
+@pytest.fixture(autouse=True)
+def override_get_db(db):
+    def get_test_db():
         yield db
 
     app.dependency_overrides[get_db] = get_test_db
@@ -58,13 +59,13 @@ async def add_book(db, book_data):
     return book.model_dump()
 
 
-@pytest_asyncio.fixture
-async def author1_data():
+@pytest.fixture
+def author1_data():
     return {"name": "宮沢賢治"}
 
 
-@pytest_asyncio.fixture
-async def author2_data():
+@pytest.fixture
+def author2_data():
     return {"name": "芥川龍之介"}
 
 
@@ -78,8 +79,8 @@ async def author2(db, author2_data):
     return await add_author(db, author2_data)
 
 
-@pytest_asyncio.fixture
-async def book1_data(author1):
+@pytest.fixture
+def book1_data(author1):
     return {"name": "銀河鉄道の夜", "author_id": author1["id"]}
 
 

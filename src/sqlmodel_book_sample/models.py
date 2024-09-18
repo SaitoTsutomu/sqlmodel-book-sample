@@ -8,7 +8,7 @@ class AuthorBase(SQLModel):
     name: str
 
 
-class Author(AuthorBase, table=True):  # type: ignore
+class Author(AuthorBase, table=True):  # type: ignore[call-arg]
     id: int | None = Field(default=None, primary_key=True)
     books: list["Book"] = Relationship(back_populates="author", sa_relationship_kwargs={"cascade": "delete"})
 
@@ -35,7 +35,7 @@ class BookBase(SQLModel):
     author_id: int | None = Field(default=None, foreign_key="author.id")
 
 
-class Book(BookBase, table=True):  # type: ignore
+class Book(BookBase, table=True):  # type: ignore[call-arg]
     id: int | None = Field(default=None, primary_key=True)
     author: Author | None = Relationship(back_populates="books")
 

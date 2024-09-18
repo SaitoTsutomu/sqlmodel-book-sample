@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import selectinload
@@ -22,17 +23,16 @@ from .models import (
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     await init_db()  # setup
     yield
-    pass  # teardown
 
 
 app = FastAPI(lifespan=lifespan)
 
 
-@app.post("/authors", response_model=AuthorGet, tags=["/authors"])
-async def add_author(author: AuthorAdd, db: AsyncSession = Depends(get_db)):
+@app.post("/authors", tags=["/authors"])
+async def add_author(author: AuthorAdd, db: Annotated[AsyncSession, Depends(get_db)]) -> AuthorGet:
     author_new = Author.model_validate(author)
     db.add(author_new)
     await db.commit()
@@ -40,8 +40,8 @@ async def add_author(author: AuthorAdd, db: AsyncSession = Depends(get_db)):
     return author_new
 
 
-@app.post("/books", response_model=BookGet, tags=["/books"])
-async def add_book(book: BookAdd, db: AsyncSession = Depends(get_db)):
+@app.post("/books", tags=["/books"])
+async def add_book(book: BookAdd, db: Annotated[AsyncSession, Depends(get_db)]) -> BookGet:
     author = await db.get(Author, book.author_id)
     if not author:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
@@ -52,53 +52,53 @@ async def add_book(book: BookAdd, db: AsyncSession = Depends(get_db)):
     return book_new
 
 
-@app.get("/authors", response_model=list[AuthorGet], tags=["/authors"])
-async def get_authors(db: AsyncSession = Depends(get_db)):
+@app.get("/authors", tags=["/authors"])
+async def get_authors(db: Annotated[AsyncSession, Depends(get_db)]) -> list[AuthorGet]:
     return await db.scalars(select(Author))
 
 
-@app.get("/books", response_model=list[BookGet], tags=["/books"])
-async def get_books(db: AsyncSession = Depends(get_db)):
+@app.get("/books", tags=["/books"])
+async def get_books(db: Annotated[AsyncSession, Depends(get_db)]) -> list[BookGet]:
     return await db.scalars(select(Book))
 
 
-@app.get("/authors/{author_id}", response_model=AuthorGet, tags=["/authors"])
-async def get_author(author_id: int, db: AsyncSession = Depends(get_db)):
+@app.get("/authors/{author_id}", tags=["/authors"])
+async def get_author(author_id: int, db: Annotated[AsyncSession, Depends(get_db)]) -> AuthorGet:
     author = await db.get(Author, author_id)
     if not author:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
     return author
 
 
-@app.get("/books/{book_id}", response_model=BookGet, tags=["/books"])
-async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):
+@app.get("/books/{book_id}", tags=["/books"])
+async def get_book(book_id: int, db: Annotated[AsyncSession, Depends(get_db)]) -> BookGet:
     book = await db.get(Book, book_id)
     if not book:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
     return book
 
 
-@app.get("/authors/{author_id}/details", response_model=AuthorGetWithBooks, tags=["/authors"])
-async def author_details(author_id: int, db: AsyncSession = Depends(get_db)):
+@app.get("/authors/{author_id}/details", tags=["/authors"])
+async def author_details(author_id: int, db: Annotated[AsyncSession, Depends(get_db)]) -> AuthorGetWithBooks:
     q = select(Author).where(Author.id == author_id)
-    author = await db.scalar(q.options(selectinload(Author.books)))  # type: ignore
+    author = await db.scalar(q.options(selectinload(Author.books)))
     if not author:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
     return author
 
 
-@app.get("/books/{book_id}/details", response_model=BookGetWithAuthor, tags=["/books"])
-async def book_details(book_id: int, db: AsyncSession = Depends(get_db)):
+@app.get("/books/{book_id}/details", tags=["/books"])
+async def book_details(book_id: int, db: Annotated[AsyncSession, Depends(get_db)]) -> BookGetWithAuthor:
     book = await db.scalar(
-        select(Book).where(Book.id == book_id).options(selectinload(Book.author))  # type: ignore
+        select(Book).where(Book.id == book_id).options(selectinload(Book.author)),
     )
     if not book:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
     return book
 
 
-@app.patch("/authors", response_model=AuthorGet, tags=["/authors"])
-async def update_author(author: AuthorUpdate, db: AsyncSession = Depends(get_db)):
+@app.patch("/authors", tags=["/authors"])
+async def update_author(author: AuthorUpdate, db: Annotated[AsyncSession, Depends(get_db)]) -> AuthorGet:
     author_cur = await db.get(Author, author.id)
     if not author_cur:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author.id")
@@ -109,8 +109,8 @@ async def update_author(author: AuthorUpdate, db: AsyncSession = Depends(get_db)
     return author_cur
 
 
-@app.patch("/books", response_model=BookGet, tags=["/books"])
-async def update_book(book: BookUpdate, db: AsyncSession = Depends(get_db)):
+@app.patch("/books", tags=["/books"])
+async def update_book(book: BookUpdate, db: Annotated[AsyncSession, Depends(get_db)]) -> BookGet:
     book_cur = await db.get(Book, book.id)
     if not book_cur:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book.id")
@@ -126,8 +126,8 @@ async def update_book(book: BookUpdate, db: AsyncSession = Depends(get_db)):
     return book_cur
 
 
-@app.delete("/authors", response_model=None, tags=["/authors"])
-async def delete_author(author_id: int, db: AsyncSession = Depends(get_db)):
+@app.delete("/authors", tags=["/authors"])
+async def delete_author(author_id: int, db: Annotated[AsyncSession, Depends(get_db)]) -> None:
     author = await db.get(Author, author_id)
     if author is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown author_id")
@@ -135,8 +135,8 @@ async def delete_author(author_id: int, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
 
-@app.delete("/books", response_model=None, tags=["/books"])
-async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)):
+@app.delete("/books", tags=["/books"])
+async def delete_book(book_id: int, db: Annotated[AsyncSession, Depends(get_db)]) -> None:
     book = await db.get(Book, book_id)
     if book is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Unknown book_id")
