@@ -2,9 +2,9 @@
 authors = [{name = "Saito Tsutomu", email = "tsutomu7@hotmail.co.jp"}]
 dependencies = [
   "aiosqlite>=0.20.0",
-  "fastapi[all]>=0.114.0",
-  "greenlet>=3.0.3",
-  "sqlalchemy>=2.0.34",
+  "fastapi[standard]>=0.115.0",
+  "greenlet>=3.1.0",
+  "sqlalchemy>=2.0.35",
   "sqlmodel>=0.0.22",
 ]
 description = "SQLModel Book Sample"
@@ -12,11 +12,11 @@ license = {text = "Apache-2.0"}
 name = "sqlmodel_book_sample"
 readme = "README.md"
 requires-python = ">=3.12"
-version = "0.2.0"
+version = "0.2.1"
 
 [tool.uv]
 dev-dependencies = [
-  "pytest>=8.3.2",
+  "pytest>=8.3.3",
   "pytest-asyncio>=0.24.0",
   "pytest-randomly>=3.15.0",
 ]

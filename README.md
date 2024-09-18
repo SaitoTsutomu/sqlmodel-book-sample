@@ -64,8 +64,10 @@ uv venv
 以下のようにしてFastAPIを起動します。
 
 ```shell
-uv run uvicorn sqlmodel_book_sample.main:app --host 0.0.0.0 --reload
+uv run fastapi dev src/sqlmodel_book_sample/main.py
 ```
+
+※ 本番環境では、`dev`を`run`にします。
 
 ## 対話的APIドキュメント
 
